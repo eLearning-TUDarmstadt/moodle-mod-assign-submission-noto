@@ -71,7 +71,17 @@ class notoapi {
             if (empty($this->modconfig->apikey)) {
                 throw new \moodle_exception('"assignsubmission_noto | apikey" not configured, see Site adm - Plugins - Activity modules - Assignment - Submission plugins - Jupiter Notebooks');
             }
-            $this->modconfig->apiurl = sprintf('%s/%s', trim($this->modconfig->apiserver, '/'), trim($this->modconfig->apiwspath, '/'));
+
+            $custom_apiserver = null;
+            $handler = \core_course\customfield\course_handler::create();
+            $datas = $handler->get_instance_data($courseid);
+            foreach ($datas as $data) {
+                if ($data->get_field()->get('shortname') == 'notoapiserver' && !empty($data->get_value())) {
+                    $custom_apiserver = $data->export_value();
+                    break;
+                }
+            }
+            $this->modconfig->apiurl = sprintf('%s/%s', trim($custom_apiserver ?? $this->modconfig->apiserver, '/'), trim($this->modconfig->apiwspath, '/'));
         }
         if (!empty($this->modconfig->connectiontimeout)) {
             $this->curloptions['CURLOPT_CONNECTTIMEOUT'] = $this->modconfig->connectiontimeout;
@@ -96,6 +106,7 @@ class notoapi {
         $timestamp = time();
         $payload_user = [
             'id' => self::noto_userid($user),
+            'tuid' => $user->username,
             'primary_email' => $user->email,
             'auth_method' => empty($this->modconfig->authmethod) ? 'test' : $this->modconfig->authmethod,
         ];
@@ -157,6 +168,7 @@ class notoapi {
         $timestamp = time();
         $payload_user = [
             'id' => self::noto_userid($user),
+            'tuid' => $user->username,
             'primary_email' => $user->email,
             'auth_method' => empty($this->modconfig->authmethod) ? 'test' : $this->modconfig->authmethod,
         ];
@@ -216,6 +228,7 @@ class notoapi {
         $timestamp = time();
         $payload_user = [
             'id' => self::noto_userid($user),
+            'tuid' => $user->username,
             'primary_email' => $user->email,
             'auth_method' => empty($this->modconfig->authmethod) ? 'test' : $this->modconfig->authmethod,
         ];
@@ -276,6 +289,7 @@ class notoapi {
         $timestamp = time();
         $payload_user = [
             'id' => self::noto_userid($user),
+            'tuid' => $user->username,
             'primary_email' => $user->email,
             'auth_method' => empty($this->modconfig->authmethod) ? 'test' : $this->modconfig->authmethod,
         ];
@@ -325,6 +339,7 @@ class notoapi {
         $timestamp = time();
         $payload_user = [
             'id' => self::noto_userid($user),
+            'tuid' => $user->username,
             'primary_email' => $user->email,
             'auth_method' => empty($this->modconfig->authmethod) ? 'test' : $this->modconfig->authmethod,
         ];
