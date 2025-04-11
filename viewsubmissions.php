@@ -58,7 +58,16 @@ $config = get_config('assignsubmission_noto');
 if (!has_capability('mod/assign:grade', $context) && !$config->ethz) {
     # this is a student, redirect them to NOTO
     $existing_submissions = $DB->get_record('assignsubmission_noto', array('assignment'=>$cm->instance, 'submission'=>$submission->id));
-    $apinotebookpath = sprintf('%s/%s', trim($config->apiserver, '/'), trim($config->apinotebookpath, '/'));
+    $custom_apiserver = null;
+    $handler = \core_course\customfield\course_handler::create();
+    $datas = $handler->get_instance_data($cm->course);
+    foreach ($datas as $data) {
+        if ($data->get_field()->get('shortname') == 'notoapiserver' && !empty($data->get_value())) {
+            $custom_apiserver = $data->export_value();
+            break;
+        }
+    }
+    $apinotebookpath = sprintf('%s/%s', trim($custom_apiserver ?? $config->apiserver, '/'), trim($config->apinotebookpath, '/'));
     if ($existing_submissions && $existing_submissions->directory) {
         $directories = explode("\n", $existing_submissions->directory);
         $most_recent_submission = end($directories);
@@ -126,7 +135,16 @@ if ($form->is_cancelled()) {
     }
     $new_directory_created = assignsubmission_noto\notoapi::normalize_localpath($new_directory_created);
     if (!$config->ethz) {
-        $apinotebookpath = sprintf('%s/%s', trim($config->apiserver, '/'), trim($config->apinotebookpath, '/'));
+        $custom_apiserver = null;
+        $handler = \core_course\customfield\course_handler::create();
+        $datas = $handler->get_instance_data($cm->course);
+        foreach ($datas as $data) {
+            if ($data->get_field()->get('shortname') == 'notoapiserver' && !empty($data->get_value())) {
+                $custom_apiserver = $data->export_value();
+                break;
+            }
+        }
+        $apinotebookpath = sprintf('%s/%s', trim($custom_apiserver ?? $config->apiserver, '/'), trim($config->apinotebookpath, '/'));
     }
     $notoremotecopy = $DB->get_record('assignsubmission_noto_tcopy', array('studentid'=>$submission->userid, 'assignmentid'=>$submission->assignment));
     if (!$notoremotecopy) {

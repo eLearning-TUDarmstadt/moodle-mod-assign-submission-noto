@@ -123,7 +123,16 @@ if ($form->is_cancelled()) {
     $new_directory_created = assignsubmission_noto\notoapi::normalize_localpath($new_directory_created);
     $config = get_config('assignsubmission_noto');
     if (!$config->ethz) {
-        $apinotebookpath = sprintf('%s/%s', trim($config->apiserver, '/'), trim($config->apinotebookpath, '/'));
+        $custom_apiserver = null;
+        $handler = \core_course\customfield\course_handler::create();
+        $datas = $handler->get_instance_data($cm->course);
+        foreach ($datas as $data) {
+            if ($data->get_field()->get('shortname') == 'notoapiserver' && !empty($data->get_value())) {
+                $custom_apiserver = $data->export_value();
+                break;
+            }
+        }
+        $apinotebookpath = sprintf('%s/%s', trim($custom_apiserver ?? $config->apiserver, '/'), trim($config->apinotebookpath, '/'));
     }
     $notoremotecopy = $DB->get_record('assignsubmission_noto_copies', array('userid'=>$USER->id, 'assignmentid'=>$submission->assignment));
     if ($notoremotecopy) {
